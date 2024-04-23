@@ -6,7 +6,7 @@ To launch:
 
 ```git clone --recurse https://github.com/melitajak/library2.git```
 
-```cd library_music_rental```
+```cd library2```
 
 ```docker-compose up```
 

@@ -2,10 +2,34 @@ from flask import Flask, request, jsonify
 from books import Book, books
 from readers import Reader, readers
 from libraries import Library, libraries
+from contacts import get_contacts, create_contact
 
 app = Flask(__name__)
 
-@app.route('/', methods=['GET'])
+#get contacts from the second service
+@app.get('/contacts/<int:cont_id>')
+def get_contact_route(cont_id):
+    contact = get_contacts(cont_id)
+    if 'error' in contact:
+        return jsonify({'error': contact['error']}), 500
+    return jsonify(contact)
+    
+@app.post('/contacts')
+def create_contact_route():
+    data = request.json
+    # Ensure required fields are present in the request data
+    required_fields = ['id', 'surname', 'name', 'number', 'email']
+    if not all(field in data for field in required_fields):
+        return jsonify({'error': 'Missing required fields'}), 400
+    
+    # Forward the request to the Java service
+    response = create_contact(data)
+    if 'error' in response:
+        return jsonify({'error': response['error']}), 500
+    
+    return jsonify(response), 201
+
+@app.get('/')
 def index():
     return jsonify({
         'books': [book.__dict__ for book in books],
@@ -34,14 +58,19 @@ def get_book_by_id(book_id):
         if book.id == book_id:
             return jsonify(book.__dict__)
     return jsonify({'error': 'Book not found'}), 404
+   
 
-# Get a specific reader by ID
-@app.get('/readers/<int:reader_id>')
-def get_reader_by_id(reader_id):
-    for reader in readers:
-        if reader.id == reader_id:
-            return jsonify(reader.__dict__)
-    return jsonify({'error': 'Reader not found'}), 404
+# Get a specific reader by ID, additional info from contacts
+@app.get('/contacts/readers/<int:reader_id>')
+def get_reader_contacts(reader_id):
+    reader = next((reader for reader in readers if reader.id == reader_id), None)
+    if reader:
+        reader_info = get_contacts(reader_id)
+        if 'error' in reader_info:
+            return jsonify({'error': reader_info['error']}), 500
+        return jsonify({'id': reader_id, 'contacts': reader_info})
+    return jsonify({'error: No contacts found for reader ID {reader_id}'}), 404
+   
 
 # Get a specific library by ID
 @app.get('/libraries/<int:library_id>')
@@ -107,9 +136,9 @@ def update_book(book_id):
 @app.post('/readers')
 def add_reader():
     data = request.json
-    name = data.get('name')
-    if name:
-        new_reader = Reader(len(readers) + 1, name)
+    reader_id = data.get('id')
+    if reader_id:
+        new_reader = Reader(reader_id) 
         readers.append(new_reader)
         return jsonify(new_reader.__dict__), 201, {"location": f"/readers/{new_reader.id}"}
     return jsonify({'error': 'Invalid data supplied'}), 400
@@ -128,11 +157,11 @@ def delete_reader(reader_id):
 @app.put('/readers/<int:reader_id>')
 def update_reader(reader_id):
     data = request.json
-    name = data.get('name')
-    if name:
+    new_reader_id = data.get('id')
+    if new_reader_id:
         for reader in readers:
             if reader.id == reader_id:
-                reader.name = name
+                reader.id = new_reader_id
                 return jsonify(reader.__dict__)
         return jsonify({'error': 'Reader not found'}), 404
     return jsonify({'error': 'Invalid data supplied'}), 400
@@ -181,7 +210,6 @@ def update_book_reader(book_id):
                 for reader in readers:
                     if reader.id == reader_id:
                         book.reader_id = reader_id
-                        book.reader_name = reader.name 
                         return jsonify(book.__dict__)
                 return jsonify({'error': 'Reader not found'}), 404
         return jsonify({'error': 'Book not found'}), 404
@@ -213,7 +241,6 @@ def unassign_reader(book_id):
         if book.id == book_id:
             if hasattr(book, 'reader_id'):
                 del book.reader_id
-                del book.reader_name 
                 return jsonify(book.__dict__), 204
             return jsonify({'error': 'Reader is not assigned to this book'}), 400
     return jsonify({'error': 'Book not found'}), 404
@@ -232,4 +259,4 @@ def unassign_library(book_id):
     return jsonify({'error': 'Book not found'}), 404
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='0.0.0.0', port=8080)

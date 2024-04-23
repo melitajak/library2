@@ -2,9 +2,23 @@ version: '3'
 
 services:
   library:
+    container_name: library	
     build: .
     ports:
-      - "5000:5000"
+      - "8080:8080"
     volumes:
       - .:/code
+    networks:
+      - my_network
 
+  contacts:
+    container_name: contacts
+    build: ./contacts
+    ports:
+      - "5000:5000"
+    networks:
+      - my_network
+      
+networks:
+  my_network:
+    driver: bridge

@@ -69,7 +69,7 @@ def get_reader_contacts(reader_id):
         if 'error' in reader_info:
             return jsonify({'error': reader_info['error']}), 500
         return jsonify({'id': reader_id, 'contacts': reader_info})
-    return jsonify({'error: No contacts found for reader ID {reader_id}'}), 404
+    return jsonify({'error': 'Reader not found'}), 404
    
 
 # Get a specific library by ID

@@ -4,6 +4,6 @@ class Reader:
 
 readers = [
     Reader(12345),
-    Reader(2),
-    Reader(3),
+    Reader(74638),
+    Reader(19292),
 ]

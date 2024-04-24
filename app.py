@@ -65,7 +65,10 @@ def get_reader_contacts(reader_id):
     if reader:
         reader_info = get_contacts(reader_id)
         if 'error' in reader_info:
-            return jsonify({'error': reader_info['error']}), 500
+            if '404 Client Error' in reader_info['error']:
+                return jsonify({'error': 'ID not found in contacts'}), 404
+            else:
+                return jsonify({'error': reader_info['error']}), 500
         return jsonify({'id': reader_id, 'contacts': reader_info})
     return jsonify({'error': 'Reader not found'}), 404
    

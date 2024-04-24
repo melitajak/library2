@@ -13,16 +13,14 @@ def get_contact_route(cont_id):
     if 'error' in contact:
         return jsonify({'error': contact['error']}), 500
     return jsonify(contact)
-    
+
+#create contact
 @app.post('/contacts')
 def create_contact_route():
     data = request.json
-    # Ensure required fields are present in the request data
     required_fields = ['id', 'surname', 'name', 'number', 'email']
     if not all(field in data for field in required_fields):
         return jsonify({'error': 'Missing required fields'}), 400
-    
-    # Forward the request to the Java service
     response = create_contact(data)
     if 'error' in response:
         return jsonify({'error': response['error']}), 500

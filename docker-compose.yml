@@ -8,17 +8,9 @@ services:
       - "80:80"
     volumes:
       - .:/code
-    networks:
-      - my_network
 
   contacts:
     container_name: contacts
     build: ./contacts
     ports:
       - "5000:5000"
-    networks:
-      - my_network
-      
-networks:
-  my_network:
-    driver: bridge

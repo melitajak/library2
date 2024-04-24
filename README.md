@@ -50,8 +50,17 @@ Update book:
 ### DELETE:
 Unassing reader:
 
-```curl -X DELETE http://localhost:80/books/1/reader```
+```curl -X DELETE http://localhost:80/books/{book_id}/reader```
 
+
+### Connection with contacts service:
+See reader contatacts by id:
+
+```curl http://localhost:80/contacts/readers/{reader_id}```
+
+Create contact:
+
+```curl -X POST -H "Content-Type: application/json" -d '{"id": 123, "surname": "Doe", "name": "John", "number": "+123456789", "email": "john.doe@example.com"}' http://localhost:80/contacts```
 
 
 
